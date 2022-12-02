@@ -58,7 +58,8 @@ export default function parse(md, prevLinks) {
     if (prev.match(/[^\\](\\\\)*\\$/)) {
       // Escaped
     } else if (t = (token[3] || token[4])) {
-      // Code/Indent blocks (replace line breaks until post-processing)
+      // Code/Indent blocks
+      // Replace line breaks until post-processing
       chunk = '<pre><code>' + outdent(encodeAttr(t).replace(/^\n+|\n+$/g, '')).replace(/\n/g, '{{n}}') + '</code></pre>';
     } else if (t = token[6]) {
       // Quotes (>), Lists (-*)
@@ -68,6 +69,8 @@ export default function parse(md, prevLinks) {
       inner = parse(outdent(token[5].replace(/^\s*[>*+.-]/gm, '')));
       if (t === '>') {
         t = 'blockquote';
+        // Replace line breaks until post-processing
+        inner = inner.replace(/\n/g, '{{n}}');
       } else {
         t = t.match(/\./) ? 'ol' : 'ul';
         inner = inner.replace(/^(.*)(\n|$)/gm, '<li>$1</li>');
@@ -104,6 +107,8 @@ export default function parse(md, prevLinks) {
   if (out.indexOf('<h') > -1) {
     // Add <p> tags (excluding: blockquote, hr, h1-6, ol, pre, ul)
     out = out.replace(/\n+((?!<(b|h|o|p|u)).+)/g, '\n<p>$1</p>');
+    // Strip extra newlines
+    out = out.replace(/\n{2,}/g, '\n');
     // Restore line breaks within <pre>
     out = out.replace(/{{n}}/g, '\n');
   }
